@@ -1,52 +1,39 @@
 # Python
 *.pyc
 __pycache__/
-*.pyo
-*.pyd
-.Python
 
 # Django
-*.log
-*.pot
-*.pyc
-__pycache__/
-local_settings.py
 db.sqlite3
-db.sqlite3-journal
+*.log
 media/
 
-# Environment variables
+# Environment
 .env
 .env.local
+
+# IDE
+.idea/
+.vscode/
 
 # Virtual Environment
 venv/
 env/
 .venv/
-ENV/
-
-# IDE
-.vscode/
-.idea/
-*.swp
-*.swo
 
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
-[Tt]humbs.db
+Thumbs.db
 
-# Windows
+# Backup
+habit_tracker_backup_full/
+
+# Coverage
+.coverage
+
+# Windows system files
 nul
 con
 prn
-aux
-com[1-9]
-lpt[1-9]
 
-# Backup directories
-habit_tracker_backup_full/
+# Poetry
+poetry.lock
