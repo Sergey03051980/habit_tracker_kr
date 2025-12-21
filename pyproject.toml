@@ -1,0 +1,49 @@
+[tool.poetry]
+name = "habit-tracker-kr"
+version = "0.1.0"
+description = "Habit Tracker Project"
+authors = ["Serzh Ivashchenko <serzh466163@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = ">=3.9,<4.0"
+
+# Django Core
+Django = "4.2.9"
+djangorestframework = "3.14.0"
+django-cors-headers = "4.2.0"
+django-filter = "23.3"
+
+# Database
+psycopg2-binary = "2.9.11"
+
+# Celery
+celery = "5.3.4"
+redis = "5.0.1"
+
+# Authentication
+djangorestframework-simplejwt = "5.3.0"
+
+# Telegram
+python-telegram-bot = "20.8"
+
+# Utilities
+requests = "2.31.0"
+python-dotenv = "1.0.0"
+setuptools = "<81"
+
+# Documentation
+drf-spectacular = "0.29.0"
+django-celery-results = "^2.6.0"
+django-extensions = "^4.1"
+
+[tool.poetry.group.dev.dependencies]
+flake8 = "6.1.0"
+pycodestyle = "2.11.1"
+autopep8 = "2.0.4"
+pytest = "7.4.3"
+pytest-django = "4.7.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
