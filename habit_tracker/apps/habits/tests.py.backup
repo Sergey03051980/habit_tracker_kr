@@ -1,0 +1,142 @@
+from django.test import TestCase
+from django.contrib.auth import get_user_model
+from django.core.exceptions import ValidationError
+from rest_framework.test import APITestCase, APIClient
+from rest_framework import status
+from .models import Habit
+
+User = get_user_model()
+
+class HabitModelTest(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+    
+    def test_create_habit(self):
+        """Тест создания привычки."""
+        habit = Habit.objects.create(
+            user=self.user,
+            name='Чтение книги',
+            description='Читать 30 минут перед сном',
+            period='daily',
+            duration=60,
+            is_public=False
+        )
+        self.assertEqual(habit.name, 'Чтение книги')
+        self.assertEqual(habit.user.email, 'test@example.com')
+        self.assertFalse(habit.is_public)
+    
+    def test_pleasant_no_reward(self):
+        """Тест: приятная привычка не должна иметь вознаграждения."""
+        pleasant_habit = Habit.objects.create(
+            user=self.user,
+            name='Прослушивание музыки',
+            duration=30,
+            is_public=True
+        )
+        
+        # Создаём полезную привычку, связанную с приятной
+        useful_habit = Habit(
+            user=self.user,
+            name='Зарядка',
+            duration=90,
+            linked_habit=pleasant_habit
+        )
+        
+        # Должно пройти валидацию
+        useful_habit.full_clean()
+    
+    def test_validation_execution_time(self):
+        """Тест валидации времени выполнения (макс. 120 секунд)."""
+        habit = Habit(
+            user=self.user,
+            name='Тестовая привычка',
+            duration=150  # Больше 120 секунд
+        )
+        with self.assertRaises(ValidationError):
+            habit.full_clean()
+
+class HabitAPITest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='api_user',
+            email='api@example.com',
+            password='testpass123'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+    
+    def test_create_habit_api(self):
+        """Тест создания привычки через API."""
+        data = {
+            'name': 'Утренняя зарядка',
+            'description': 'Делать зарядку каждое утро',
+            'period': 'daily',
+            'duration': 90,
+            'is_public': True
+        }
+        response = self.client.post('/api/habits/habits/', data)
+        self.assertIn(response.status_code, [status.HTTP_201_CREATED, status.HTTP_200_OK])
+        if response.status_code == 201:
+            self.assertEqual(response.data['name'], 'Утренняя зарядка')
+            self.assertEqual(response.data['user'], self.user.id)
+    
+    def test_list_habits(self):
+        """Тест получения списка привычек."""
+        # Создаём тестовые привычки
+        Habit.objects.create(user=self.user, name='Привычка 1', duration=60)
+        Habit.objects.create(user=self.user, name='Привычка 2', duration=90)
+        
+        response = self.client.get('/api/habits/habits/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertGreaterEqual(len(response.data.get('results', response.data)), 2)
+    
+    def test_public_habits(self):
+        """Тест получения публичных привычек."""
+        # Создаём публичную и приватную привычки
+        public_habit = Habit.objects.create(
+            user=self.user, 
+            name='Публичная привычка', 
+            duration=60,
+            is_public=True
+        )
+        private_habit = Habit.objects.create(
+            user=self.user,
+            name='Приватная привычка',
+            duration=60,
+            is_public=False
+        )
+        
+        # Запрос публичных привычек
+        response = self.client.get('/api/habits/habits/?public=true')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Проверяем что только публичная привычка в ответе
+        habits_data = response.data.get('results', response.data)
+        self.assertTrue(any(h['id'] == public_habit.id for h in habits_data))
+        self.assertFalse(any(h['id'] == private_habit.id for h in habits_data))
+
+class HabitCompletionTest(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='completion_user',
+            email='completion@example.com',
+            password='testpass123'
+        )
+        self.client = APIClient()
+        self.client.force_authenticate(user=self.user)
+        self.habit = Habit.objects.create(
+            user=self.user,
+            name='Тестовая привычка для выполнения',
+            duration=60
+        )
+    
+    def test_create_completion(self):
+        """Тест отметки привычки как выполненной."""
+        response = self.client.post(f'/api/habits/habits/{self.habit.id}/complete/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data['status'], 'completed')
+        self.assertEqual(response.data['habit'], 'Тестовая привычка для выполнения')
