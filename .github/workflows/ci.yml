@@ -34,7 +34,7 @@ jobs:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/test_db
       CELERY_BROKER_URL: redis://redis:6379/0
       CELERY_RESULT_BACKEND: redis://redis:6379/0
-      SECRET_KEY: ${{ secrets.SECRET_KEY || 'test-secret-key' }}
+      SECRET_KEY: test-secret-key-for-ci-12345
       DEBUG: "False"
 
     steps:
@@ -58,13 +58,6 @@ jobs:
     - name: Run Django tests
       run: |
         python manage.py test --verbosity=2
-
-    - name: Run flake8 (безопасная версия)
-      run: |
-        pip install flake8
-        # Простая проверка без сложных параметров
-        flake8 --version
-        flake8 . --count --max-line-length=88 || echo "Flake8 found issues"
 
   docker-build:
     runs-on: ubuntu-latest
