@@ -1,20 +1,12 @@
 [flake8]
+max-line-length = 88
+extend-ignore = E203, W503
 exclude = 
-    .venv,
+    .git,
     __pycache__,
+    .venv,
+    venv,
+    env,
+    .env,
     migrations,
-    */migrations/*,
-    */tests/*,
-    run_tests.py
-max-line-length = 120
-ignore = 
-    E501,  # Длинные строки
-    W293,  # Пробелы в пустых строках (уже исправили)
-    E402,  # Импорт не в начале
-    F821,  # Undefined name
-    E302,  # Нет 2 пустых строк
-    E305,  # Нет 2 пустых строк после функции
-    E131,  # Неправильный отступ
-    F811,  # Переопределение
-    F841,  # Неиспользуемая переменная
-    F401   # Неиспользуемый импорт
+    .pytest_cache
